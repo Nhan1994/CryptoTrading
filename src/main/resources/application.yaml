@@ -36,3 +36,10 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
     com.example.cryptotradingsystem: DEBUG
+
+binance:
+  fetch-price:
+    url: https://api.binance.com/api/v3/ticker/bookTicker
+houbi:
+  fetch-price:
+    url: https://api.huobi.pro/market/tickers

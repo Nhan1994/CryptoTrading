@@ -28,5 +28,5 @@ public class TradeTransaction {
 
     private double totalUsdt;
 
-    private LocalDateTime timestamp;
+    private LocalDateTime createdAt;
 }

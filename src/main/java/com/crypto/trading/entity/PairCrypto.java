@@ -13,6 +13,6 @@ public class PairCrypto {
     private Long id;
 
     @Column(nullable = false, unique = true, length = 20)
-    private String pairCrypto;
+    private String pairSymbol;
 
 }

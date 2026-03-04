@@ -1,21 +1,31 @@
 package com.crypto.trading.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "aggregated_price")
 @Data
+@Builder
 public class AggregatedPrice {
 
     @Id
-    private String pair;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    private double bidPrice; // For SELL
-    private double askPrice; // For BUY
-    private LocalDateTime timestamp;
+    @Column(nullable = false, length = 20)
+    private String symbol;
+
+    @Column(nullable = false, precision = 19)
+    private BigDecimal bestBid;
+
+    @Column(nullable = false, precision = 19)
+    private BigDecimal bestAsk;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
 }
