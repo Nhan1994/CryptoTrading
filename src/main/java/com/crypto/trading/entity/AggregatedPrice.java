@@ -1,8 +1,7 @@
 package com.crypto.trading.entity;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -11,6 +10,8 @@ import java.time.LocalDateTime;
 @Table(name = "aggregated_price")
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class AggregatedPrice {
 
     @Id

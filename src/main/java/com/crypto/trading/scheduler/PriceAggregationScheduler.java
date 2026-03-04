@@ -73,6 +73,7 @@ public class PriceAggregationScheduler {
                         .createdAt(LocalDateTime.now())
                         .build();
 
+
                 aggregatedPriceRepository.save(aggregatedPrice);
 
                 log.info("Aggregated {} -> BestBid: {}, BestAsk: {}",
