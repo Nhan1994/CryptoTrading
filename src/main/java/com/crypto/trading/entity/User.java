@@ -1,11 +1,17 @@
 package com.crypto.trading.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "users")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
 
     @Id
@@ -13,7 +19,7 @@ public class User {
     private Long id;
 
     @Column(nullable = false, unique = true, length = 50)
-    private String username;
+    private String userName;
 
     private String email;
 }

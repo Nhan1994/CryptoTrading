@@ -1,13 +1,16 @@
 package com.crypto.trading.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "trade_transaction")
 @Data
+@Builder
 public class TradeTransaction {
 
     @Id
@@ -18,15 +21,15 @@ public class TradeTransaction {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    private String pair;
+    private String symbol;
 
     private String type; //BUY or SELL
 
-    private double amount;
+    private BigDecimal quantity;
 
-    private double price;
+    private BigDecimal price;
 
-    private double totalUsdt;
+    private BigDecimal totalPrice;
 
     private LocalDateTime createdAt;
 }

@@ -37,7 +37,7 @@ public class PriceAggregationScheduler {
 
     private static final List<String> SUPPORTED_SYMBOLS = List.of("BTCUSDT", "ETHUSDT");
 
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 20000)
     public void fetchAggregatedPrice(){
         try {
 

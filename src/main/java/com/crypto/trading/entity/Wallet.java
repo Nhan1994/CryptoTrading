@@ -1,11 +1,19 @@
 package com.crypto.trading.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "wallet")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Wallet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,5 +27,5 @@ public class Wallet {
     private String currency;
 
     @Column(nullable = false, precision = 10)
-    private double balance;
+    private BigDecimal balance;
 }
