@@ -5,6 +5,7 @@ import com.crypto.trading.entity.TradeTransaction;
 import com.crypto.trading.entity.User;
 import com.crypto.trading.repository.TradeTransactionRepository;
 import com.crypto.trading.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -22,10 +23,12 @@ public class TradeService {
     private final TradeTransactionRepository tradeTransactionRepository;
     private final AggregatedPriceService aggregatedPriceService;
     private final WalletService walletService;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
+    @Transactional
     public TradeResponse tradeCrypto(TradeRequest tradeRequest){
         validateRequest(tradeRequest);
+        User user = userService.getUserByUserName(tradeRequest.getUsername());
 
         BestPriceResponse latestBestPrice = aggregatedPriceService.getAggregatedBestPrice(tradeRequest.getSymbol());
         BigDecimal tradePrice;
@@ -35,7 +38,7 @@ public class TradeService {
             tradePrice = latestBestPrice.getAskPrice();
             totalPrice = tradePrice.multiply(tradeRequest.getQuantity());
             walletService.executeBuy(
-                    tradeRequest.getUsername(),
+                    user,
                     tradeRequest.getSymbol(),
                     tradeRequest.getQuantity(),
                     totalPrice
@@ -46,7 +49,7 @@ public class TradeService {
             tradePrice = latestBestPrice.getBidPrice();
             totalPrice = tradePrice.multiply(tradeRequest.getQuantity());
             walletService.executeSell(
-                    tradeRequest.getUsername(),
+                    user,
                     tradeRequest.getSymbol(),
                     tradeRequest.getQuantity(),
                     totalPrice
@@ -77,7 +80,7 @@ public class TradeService {
     }
 
     private void validateRequest(TradeRequest tradeRequest){
-        if (!tradeRequest.getSymbol().equals("ETHUSDT") && !tradeRequest.getSymbol().equals("BTCUSDT")){
+        if (!tradeRequest.getSymbol().equals(TradingPair.BTCUSDT.name()) && !tradeRequest.getSymbol().equals(TradingPair.ETHUSDT.name())){
             throw new RuntimeException("Pair crypto is invalid");
         }
         if (tradeRequest.getQuantity().compareTo(new BigDecimal(0)) <= 0){
@@ -87,11 +90,8 @@ public class TradeService {
 
     public List<TradingHistory> getTradingHistoryByUserName(String userName){
         List<TradingHistory> histories = new ArrayList<>();
-        Optional<User> user = userRepository.findByUserName(userName);
-        if (user.isEmpty()){
-            throw new RuntimeException("No user found for this action!");
-        }
-        List<TradeTransaction> tradeTransactions = tradeTransactionRepository.findByUserOrderByCreatedAtDesc(user.get());
+        User user = userService.getUserByUserName(userName);
+        List<TradeTransaction> tradeTransactions = tradeTransactionRepository.findByUserOrderByCreatedAtDesc(user);
 
         if (!CollectionUtils.isEmpty(tradeTransactions)){
             tradeTransactions.forEach(t -> {

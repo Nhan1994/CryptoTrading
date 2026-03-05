@@ -21,10 +21,10 @@ public class AggregatedPrice {
     @Column(nullable = false, length = 20)
     private String symbol;
 
-    @Column(nullable = false, precision = 19)
+    @Column(nullable = false, precision = 19, scale = 8)
     private BigDecimal bestBid;
 
-    @Column(nullable = false, precision = 19)
+    @Column(nullable = false, precision = 19, scale = 8)
     private BigDecimal bestAsk;
 
     @Column(nullable = false)

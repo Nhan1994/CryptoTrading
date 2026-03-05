@@ -1,5 +1,7 @@
 package com.crypto.trading.service;
 
+import com.crypto.trading.dto.DigitalCurrency;
+import com.crypto.trading.dto.TradingPair;
 import com.crypto.trading.dto.WalletResponse;
 import com.crypto.trading.entity.User;
 import com.crypto.trading.entity.Wallet;
@@ -54,117 +56,120 @@ public class WalletService {
         return walletResponses;
     }
 
-    public void executeBuy(String userName, String symbol, BigDecimal quantity, BigDecimal totalPrice){
-        Optional<User> user = userRepository.findByUserName(userName);
-        if (user.isEmpty()){
-            throw new RuntimeException("No user found for transaction!");
-        }
-        Optional<Wallet> optionalUsdtWallet =  walletRepository.findByUserAndCurrency(user.get(), "USDT");
-        if (optionalUsdtWallet.isEmpty()){
-            throw new RuntimeException("No wallet found for transaction!");
-        }
-        if (optionalUsdtWallet.get().getBalance().compareTo(new BigDecimal(0)) == 0 ){
-            throw new RuntimeException("The balance USDT is 0, please add more funds!");
-        }
-        if (optionalUsdtWallet.get().getBalance().compareTo(totalPrice) < 0){
-            throw new RuntimeException("There is not enough balance to buy!");
-        }
-        Wallet usdtWallet = optionalUsdtWallet.get();
-        if (symbol.equals("BTCUSDT")) {
+    public void executeBuy(User user, String symbol, BigDecimal quantity, BigDecimal totalPrice){
+        Optional<Wallet> optionalUSDTWallet =  walletRepository.findByUserAndCurrency(user, DigitalCurrency.USDT.getValue());
+        validateUSDTWalletOnBuyOrder(totalPrice, optionalUSDTWallet);
+        Wallet usdtWallet = optionalUSDTWallet.get();
+        if (symbol.equals(TradingPair.BTCUSDT.getValue())) {
             usdtWallet.setBalance(usdtWallet.getBalance().subtract(totalPrice));
             walletRepository.save(usdtWallet);
 
-            Optional<Wallet> optionalBtcWallet =  walletRepository.findByUserAndCurrency(user.get(), "BTC");
+            Optional<Wallet> optionalBtcWallet =  walletRepository.findByUserAndCurrency(user, DigitalCurrency.BTC.getValue());
             if (optionalBtcWallet.isPresent()){
                 Wallet btcWallet = optionalBtcWallet.get();
                 btcWallet.setBalance(btcWallet.getBalance().add(quantity));
                 walletRepository.save(btcWallet);
             } else {
                 Wallet newBtcWallet = new Wallet();
-                newBtcWallet.setUser(user.get());
+                newBtcWallet.setUser(user);
                 newBtcWallet.setBalance(quantity);
-                newBtcWallet.setCurrency("BTC");
+                newBtcWallet.setCurrency(DigitalCurrency.BTC.getValue());
                 walletRepository.save(newBtcWallet);
             }
-        } else if (symbol.equals("ETHUSDT")) {
+        } else if (symbol.equals(TradingPair.ETHUSDT.getValue())) {
             usdtWallet.setBalance(usdtWallet.getBalance().subtract(totalPrice));
             walletRepository.save(usdtWallet);
 
-            Optional<Wallet> optionalEthWallet =  walletRepository.findByUserAndCurrency(user.get(), "ETH");
+            Optional<Wallet> optionalEthWallet =  walletRepository.findByUserAndCurrency(user, DigitalCurrency.ETH.getValue());
             if (optionalEthWallet.isPresent()){
                 Wallet ethWallet = optionalEthWallet.get();
                 ethWallet.setBalance(ethWallet.getBalance().add(quantity));
                 walletRepository.save(ethWallet);
             } else {
                 Wallet newEthWallet = new Wallet();
-                newEthWallet.setUser(user.get());
+                newEthWallet.setUser(user);
                 newEthWallet.setBalance(quantity);
-                newEthWallet.setCurrency("ETH");
+                newEthWallet.setCurrency(DigitalCurrency.ETH.getValue());
                 walletRepository.save(newEthWallet);
             }
         }
     }
 
-    public void executeSell(String userName, String symbol, BigDecimal quantity, BigDecimal totalPrice){
-        Optional<User> user = userRepository.findByUserName(userName);
-        if (!user.isPresent()){
-            throw new RuntimeException("No user found for transaction!");
+    private void validateUSDTWalletOnBuyOrder(BigDecimal totalPrice, Optional<Wallet> optionalUSDTWallet) {
+        if (optionalUSDTWallet.isEmpty()){
+            throw new RuntimeException("No wallet found for transaction!");
         }
+        if (optionalUSDTWallet.get().getBalance().compareTo(new BigDecimal(0)) == 0 ){
+            throw new RuntimeException("The balance USDT is 0, please add more funds!");
+        }
+        if (optionalUSDTWallet.get().getBalance().compareTo(totalPrice) < 0){
+            throw new RuntimeException("There is not enough balance to buy!");
+        }
+    }
 
-        if (symbol.equals("BTCUSDT")) {
-            Optional<Wallet> optionalBtcWallet =  walletRepository.findByUserAndCurrency(user.get(), "USDT");
-            if (!optionalBtcWallet.isPresent()){
-                throw new RuntimeException("No BTC wallet found for sell!");
-            }
-            if (optionalBtcWallet.get().getBalance().compareTo(new BigDecimal(0)) == 0 ){
-                throw new RuntimeException("The balance BTC is 0, please add more funds!");
-            }
-            if (optionalBtcWallet.get().getBalance().compareTo(quantity) < 0){
-                throw new RuntimeException("There is not enough BTC quantity to sell!");
-            }
+    public void executeSell(User user, String symbol, BigDecimal quantity, BigDecimal totalPrice){
+        if (symbol.equals(TradingPair.BTCUSDT.getValue())) {
+            Optional<Wallet> optionalBtcWallet =  walletRepository.findByUserAndCurrency(user, DigitalCurrency.BTC.getValue());
+            validateBTCWalletOnSellOrder(quantity, optionalBtcWallet);
 
             Wallet btcWallet = optionalBtcWallet.get();
             btcWallet.setBalance(btcWallet.getBalance().subtract(quantity));
             walletRepository.save(btcWallet);
 
-            Optional<Wallet> optionalUsdtWallet =  walletRepository.findByUserAndCurrency(user.get(), "USDT");
+            Optional<Wallet> optionalUsdtWallet =  walletRepository.findByUserAndCurrency(user, DigitalCurrency.USDT.getValue());
             if (optionalUsdtWallet.isPresent()){
                 Wallet usdtWallet = optionalUsdtWallet.get();
                 usdtWallet.setBalance(usdtWallet.getBalance().add(totalPrice));
             } else {
                 Wallet newUsdtWallet = new Wallet();
-                newUsdtWallet.setUser(user.get());
+                newUsdtWallet.setUser(user);
                 newUsdtWallet.setBalance(totalPrice);
-                newUsdtWallet.setCurrency("USDT");
+                newUsdtWallet.setCurrency(DigitalCurrency.USDT.getValue());
                 walletRepository.save(newUsdtWallet);
             }
-        } else if (symbol.equals("ETHUSDT")) {
-            Optional<Wallet> optionalEthWallet =  walletRepository.findByUserAndCurrency(user.get(), "ETH");
-            if (!optionalEthWallet.isPresent()){
-                throw new RuntimeException("No ETH wallet found for sell!");
-            }
-            if (optionalEthWallet.get().getBalance().compareTo(new BigDecimal(0)) == 0 ){
-                throw new RuntimeException("The balance ETH is 0, please add more funds!");
-            }
-            if (optionalEthWallet.get().getBalance().compareTo(quantity) < 0){
-                throw new RuntimeException("There is not enough BTC quantity to sell!");
-            }
+        } else if (symbol.equals(TradingPair.ETHUSDT.getValue())) {
+            Optional<Wallet> optionalETHWallet =  walletRepository.findByUserAndCurrency(user, DigitalCurrency.ETH.getValue());
+            validateETHWalletOnSellOrder(quantity, optionalETHWallet);
 
-            Wallet ethWallet = optionalEthWallet.get();
+            Wallet ethWallet = optionalETHWallet.get();
             ethWallet.setBalance(ethWallet.getBalance().subtract(quantity));
             walletRepository.save(ethWallet);
 
-            Optional<Wallet> optionalUsdtWallet =  walletRepository.findByUserAndCurrency(user.get(), "USDT");
-            if (optionalUsdtWallet.isPresent()){
-                Wallet usdtWallet = optionalUsdtWallet.get();
+            Optional<Wallet> optionalUSDTWallet = walletRepository.findByUserAndCurrency(user, DigitalCurrency.USDT.getValue());
+            if (optionalUSDTWallet.isPresent()){
+                Wallet usdtWallet = optionalUSDTWallet.get();
                 usdtWallet.setBalance(usdtWallet.getBalance().add(totalPrice));
             } else {
                 Wallet newUsdtWallet = new Wallet();
-                newUsdtWallet.setUser(user.get());
+                newUsdtWallet.setUser(user);
                 newUsdtWallet.setBalance(totalPrice);
-                newUsdtWallet.setCurrency("USDT");
+                newUsdtWallet.setCurrency(DigitalCurrency.USDT.getValue());
                 walletRepository.save(newUsdtWallet);
             }
+        }
+    }
+
+    private void validateETHWalletOnSellOrder(BigDecimal quantity, Optional<Wallet> optionalETHWallet) {
+        if (optionalETHWallet.isEmpty()){
+            throw new RuntimeException("No ETH wallet found for sell!");
+        }
+        if (optionalETHWallet.get().getBalance().compareTo(new BigDecimal(0)) == 0 ){
+            throw new RuntimeException("The balance ETH is 0, please add more funds!");
+        }
+        if (optionalETHWallet.get().getBalance().compareTo(quantity) < 0){
+            throw new RuntimeException("There is not enough BTC quantity to sell!");
+        }
+    }
+
+    private void validateBTCWalletOnSellOrder(BigDecimal quantity, Optional<Wallet> optionalBtcWallet) {
+        if (optionalBtcWallet.isEmpty()){
+            throw new RuntimeException("No BTC wallet found for sell!");
+        }
+        if (optionalBtcWallet.get().getBalance().compareTo(new BigDecimal(0)) == 0 ){
+            throw new RuntimeException("The balance BTC is 0, please add more funds!");
+        }
+        if (optionalBtcWallet.get().getBalance().compareTo(quantity) < 0){
+            throw new RuntimeException("There is not enough BTC quantity to sell!");
         }
     }
 }

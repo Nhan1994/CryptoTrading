@@ -1,6 +1,7 @@
 package com.crypto.trading.scheduler;
 
 import com.crypto.trading.dto.CryptoPrice;
+import com.crypto.trading.dto.TradingPair;
 import com.crypto.trading.dto.binance.BinanceResponse;
 import com.crypto.trading.dto.houbi.HoubiPrice;
 import com.crypto.trading.dto.houbi.HoubiResponse;
@@ -20,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -35,20 +35,16 @@ public class PriceAggregationScheduler {
     private final RestTemplate restTemplate;
     private final AggregatedPriceRepository aggregatedPriceRepository;
 
-    private static final List<String> SUPPORTED_SYMBOLS = List.of("BTCUSDT", "ETHUSDT");
-
     @Scheduled(fixedRate = 20000)
     public void fetchAggregatedPrice(){
         try {
-
             List<CryptoPrice> prices = new ArrayList<>();
             prices.addAll(fetchPriceFromBinance());
             prices.addAll(fetchPriceFromHoubi());
 
-            for (String symbol : SUPPORTED_SYMBOLS) {
-
+            for (TradingPair symbol : TradingPair.values()) {
                 List<CryptoPrice> symbolPrices = prices.stream()
-                        .filter(p -> symbol.equalsIgnoreCase(p.getSymbol()))
+                        .filter(p -> symbol.getValue().equalsIgnoreCase(p.getSymbol()))
                         .toList();
 
                 if (symbolPrices.isEmpty()) {
@@ -67,7 +63,7 @@ public class PriceAggregationScheduler {
                         .orElseThrow();
 
                 AggregatedPrice aggregatedPrice = AggregatedPrice.builder()
-                        .symbol(symbol)
+                        .symbol(symbol.getValue())
                         .bestBid(bestBid)
                         .bestAsk(bestAsk)
                         .createdAt(LocalDateTime.now())
@@ -88,7 +84,7 @@ public class PriceAggregationScheduler {
     private List<CryptoPrice> fetchPriceFromBinance(){
         BinanceResponse[] responses = new BinanceResponse[0];
         ResponseEntity<BinanceResponse[]> binanceResponse = restTemplate.getForEntity(binanceUrl, BinanceResponse[].class);
-        if (binanceResponse.getStatusCode().is2xxSuccessful()){
+        if (binanceResponse.getStatusCode().is2xxSuccessful() && binanceResponse.getBody() != null){
             responses = binanceResponse.getBody();
         }
         assert responses != null;
@@ -104,7 +100,8 @@ public class PriceAggregationScheduler {
     private List<CryptoPrice> fetchPriceFromHoubi(){
         HoubiResponse houbiResponse = new HoubiResponse();
         ResponseEntity<HoubiResponse> response = restTemplate.getForEntity(houbiUrl, HoubiResponse.class);
-        if (response.getStatusCode().is2xxSuccessful() && response.getBody().getStatus().equals("ok")){
+        if (response.getStatusCode().is2xxSuccessful() && response.getBody().getStatus().equals("ok")
+                && response.getBody() != null){
             houbiResponse = response.getBody();
         }
         List<HoubiPrice> prices = houbiResponse.getData();
