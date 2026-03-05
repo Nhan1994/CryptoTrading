@@ -1,14 +1,19 @@
 package com.crypto.trading.service;
 
-import com.crypto.trading.dto.BestPriceResponse;
-import com.crypto.trading.dto.TradeRequest;
-import com.crypto.trading.dto.TradeResponse;
+import com.crypto.trading.dto.*;
 import com.crypto.trading.entity.TradeTransaction;
+import com.crypto.trading.entity.User;
 import com.crypto.trading.repository.TradeTransactionRepository;
+import com.crypto.trading.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -17,6 +22,7 @@ public class TradeService {
     private final TradeTransactionRepository tradeTransactionRepository;
     private final AggregatedPriceService aggregatedPriceService;
     private final WalletService walletService;
+    private final UserRepository userRepository;
 
     public TradeResponse tradeCrypto(TradeRequest tradeRequest){
         validateRequest(tradeRequest);
@@ -49,8 +55,6 @@ public class TradeService {
             throw new RuntimeException("Invalid order side");
         }
 
-
-
         TradeTransaction trade = TradeTransaction.builder()
                 .user(walletService.getCurrentUser())
                 .symbol(tradeRequest.getSymbol())
@@ -58,6 +62,7 @@ public class TradeService {
                 .quantity(tradeRequest.getQuantity())
                 .price(tradePrice)
                 .totalPrice(totalPrice)
+                .createdAt(LocalDateTime.now())
                 .build();
         tradeTransactionRepository.save(trade);
 
@@ -78,5 +83,28 @@ public class TradeService {
         if (tradeRequest.getQuantity().compareTo(new BigDecimal(0)) <= 0){
             throw new RuntimeException("Quantity have to be greater than 0");
         }
+    }
+
+    public List<TradingHistory> getTradingHistoryByUserName(String userName){
+        List<TradingHistory> histories = new ArrayList<>();
+        Optional<User> user = userRepository.findByUserName(userName);
+        if (user.isEmpty()){
+            throw new RuntimeException("No user found for this action!");
+        }
+        List<TradeTransaction> tradeTransactions = tradeTransactionRepository.findByUserOrderByCreatedAtDesc(user.get());
+
+        if (!CollectionUtils.isEmpty(tradeTransactions)){
+            tradeTransactions.forEach(t -> {
+                TradingHistory tradingHistory = new TradingHistory();
+                tradingHistory.setUser(userName);
+                tradingHistory.setPrice(t.getPrice());
+                tradingHistory.setSymbol(t.getSymbol());
+                tradingHistory.setQuantity(t.getQuantity());
+                tradingHistory.setTotalPrice(t.getTotalPrice());
+                tradingHistory.setCreatedAt(t.getCreatedAt());
+                histories.add(tradingHistory);
+            });
+        }
+        return histories;
     }
 }

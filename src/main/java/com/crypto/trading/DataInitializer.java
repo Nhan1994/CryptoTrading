@@ -28,7 +28,7 @@ public class DataInitializer implements CommandLineRunner {
 
         User user = User.builder()
                 .userName("trader1")
-                .email("trade1@email.com")
+                .email("trader1@email.com")
                 .build();
 
         userRepository.save(user);
@@ -37,10 +37,10 @@ public class DataInitializer implements CommandLineRunner {
                 Wallet.builder()
                         .user(user)
                         .currency("USDT")
-                        .balance(new BigDecimal("50000"))
+                        .balance(new BigDecimal("50000.00000000"))
                         .build()
         );
 
-        log.info("Initialize data for user {} with balance {} USDT", "trade1", 50000);
+        log.info("Initialize data for user {} with balance {} USDT", "trade1", 50000.0000000);
     }
 }
