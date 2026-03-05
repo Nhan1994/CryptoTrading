@@ -7,6 +7,10 @@ import com.crypto.trading.repository.TradeTransactionRepository;
 import com.crypto.trading.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -88,23 +92,48 @@ public class TradeService {
         }
     }
 
-    public List<TradingHistory> getTradingHistoryByUserName(String userName){
-        List<TradingHistory> histories = new ArrayList<>();
+    public List<TradingHistory> getTradingHistoryByUserName(String userName,
+                                                            LocalDateTime startTime,
+                                                            LocalDateTime endTime,
+                                                            Integer page,
+                                                            Integer size){
         User user = userService.getUserByUserName(userName);
-        List<TradeTransaction> tradeTransactions = tradeTransactionRepository.findByUserOrderByCreatedAtDesc(user);
 
-        if (!CollectionUtils.isEmpty(tradeTransactions)){
-            tradeTransactions.forEach(t -> {
-                TradingHistory tradingHistory = new TradingHistory();
-                tradingHistory.setUser(userName);
-                tradingHistory.setPrice(t.getPrice());
-                tradingHistory.setSymbol(t.getSymbol());
-                tradingHistory.setQuantity(t.getQuantity());
-                tradingHistory.setTotalPrice(t.getTotalPrice());
-                tradingHistory.setCreatedAt(t.getCreatedAt());
-                histories.add(tradingHistory);
-            });
+        // Default behavior: latest 100
+        if (page == null || size == null) {
+            Pageable defaultPageable =
+                    PageRequest.of(0, 100, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+            return tradeTransactionRepository
+                    .findByUser(user, defaultPageable)
+                    .map(this::toTradingHistory)
+                    .getContent();
         }
-        return histories;
+
+        Pageable pageable =
+                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Page<TradeTransaction> transactions;
+
+        if (startTime != null && endTime != null) {
+            transactions = tradeTransactionRepository
+                    .findByUserAndCreatedAtBetween(user, startTime, endTime, pageable);
+        } else {
+            transactions = tradeTransactionRepository
+                    .findByUser(user, pageable);
+        }
+
+        return transactions.map(this::toTradingHistory).getContent();
+    }
+
+    private TradingHistory toTradingHistory(TradeTransaction t) {
+        TradingHistory history = new TradingHistory();
+        history.setUser(t.getUser().getUserName());
+        history.setPrice(t.getPrice());
+        history.setSymbol(t.getSymbol());
+        history.setQuantity(t.getQuantity());
+        history.setTotalPrice(t.getTotalPrice());
+        history.setCreatedAt(t.getCreatedAt());
+        return history;
     }
 }

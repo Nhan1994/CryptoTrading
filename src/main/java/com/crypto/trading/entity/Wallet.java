@@ -26,6 +26,6 @@ public class Wallet {
     @Column(nullable = false, length = 10)
     private String currency;
 
-    @Column(nullable = false, precision = 15, scale = 8)
+    @Column(nullable = false, precision = 19, scale = 8)
     private BigDecimal balance;
 }
