@@ -63,7 +63,7 @@ public class TradeService {
         }
 
         TradeTransaction trade = TradeTransaction.builder()
-                .user(walletService.getCurrentUser())
+                .user(user)
                 .symbol(tradeRequest.getSymbol())
                 .type(tradeRequest.getTradeAction().toUpperCase())
                 .quantity(tradeRequest.getQuantity())
