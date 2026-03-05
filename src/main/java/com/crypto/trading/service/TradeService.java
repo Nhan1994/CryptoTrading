@@ -3,6 +3,7 @@ package com.crypto.trading.service;
 import com.crypto.trading.dto.*;
 import com.crypto.trading.entity.TradeTransaction;
 import com.crypto.trading.entity.User;
+import com.crypto.trading.exception.TradingBusinessException;
 import com.crypto.trading.repository.TradeTransactionRepository;
 import com.crypto.trading.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -59,7 +61,7 @@ public class TradeService {
                     totalPrice
             );
         } else {
-            throw new RuntimeException("Invalid order side");
+            throw new TradingBusinessException("Invalid trading action", HttpStatus.BAD_REQUEST);
         }
 
         TradeTransaction trade = TradeTransaction.builder()
@@ -85,10 +87,10 @@ public class TradeService {
 
     private void validateRequest(TradeRequest tradeRequest){
         if (!tradeRequest.getSymbol().equals(TradingPair.BTCUSDT.name()) && !tradeRequest.getSymbol().equals(TradingPair.ETHUSDT.name())){
-            throw new RuntimeException("Pair crypto is invalid");
+            throw new TradingBusinessException("Pair crypto is invalid", HttpStatus.BAD_REQUEST);
         }
         if (tradeRequest.getQuantity().compareTo(new BigDecimal(0)) <= 0){
-            throw new RuntimeException("Quantity have to be greater than 0");
+            throw new TradingBusinessException("Quantity have to be greater than 0", HttpStatus.BAD_REQUEST);
         }
     }
 

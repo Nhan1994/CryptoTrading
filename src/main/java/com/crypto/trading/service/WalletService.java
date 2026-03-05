@@ -4,9 +4,11 @@ import com.crypto.trading.dto.DigitalCurrency;
 import com.crypto.trading.dto.WalletResponse;
 import com.crypto.trading.entity.User;
 import com.crypto.trading.entity.Wallet;
+import com.crypto.trading.exception.TradingBusinessException;
 import com.crypto.trading.repository.WalletRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -61,14 +63,14 @@ public class WalletService {
 
     private Wallet getWalletOrThrow(User user, String currency) {
         return walletRepository.findByUserAndCurrency(user, currency)
-                .orElseThrow(() -> new RuntimeException(
-                        currency + " wallet not found"));
+                .orElseThrow(() -> new TradingBusinessException(
+                        currency + " wallet not found", HttpStatus.BAD_REQUEST));
     }
 
     private void validateSufficientBalance(Wallet wallet, BigDecimal amount) {
         if (wallet.getBalance().compareTo(amount) <= 0) {
-            throw new RuntimeException(
-                    "Insufficient balance for currency: " + wallet.getCurrency());
+            throw new TradingBusinessException(
+                    "Insufficient balance for currency: " + wallet.getCurrency(), HttpStatus.BAD_REQUEST);
         }
     }
 
