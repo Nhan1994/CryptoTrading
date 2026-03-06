@@ -17,9 +17,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -35,7 +33,7 @@ public class PriceAggregationScheduler {
     private final RestTemplate restTemplate;
     private final AggregatedPriceRepository aggregatedPriceRepository;
 
-    @Scheduled(fixedRate = 20000)
+    @Scheduled(fixedRate = 10000)
     public void fetchAggregatedPrice(){
         try {
             List<CryptoPrice> prices = new ArrayList<>();
@@ -82,35 +80,37 @@ public class PriceAggregationScheduler {
     }
 
     private List<CryptoPrice> fetchPriceFromBinance(){
-        BinanceResponse[] responses = new BinanceResponse[0];
+        BinanceResponse[] responses;
         ResponseEntity<BinanceResponse[]> binanceResponse = restTemplate.getForEntity(binanceUrl, BinanceResponse[].class);
         if (binanceResponse.getStatusCode().is2xxSuccessful() && binanceResponse.getBody() != null){
             responses = binanceResponse.getBody();
+            assert responses != null;
+            return Arrays.stream(responses)
+                    .map(r -> new CryptoPrice(
+                            r.getSymbol(),
+                            new BigDecimal(r.getBidPrice()),
+                            new BigDecimal(r.getAskPrice())
+                    ))
+                    .toList();
         }
-        assert responses != null;
-        return Arrays.stream(responses)
-                .map(r -> new CryptoPrice(
-                        r.getSymbol(),
-                        new BigDecimal(r.getBidPrice()),
-                        new BigDecimal(r.getAskPrice())
-                ))
-                .toList();
+        return Collections.emptyList();
     }
 
     private List<CryptoPrice> fetchPriceFromHoubi(){
-        HoubiResponse houbiResponse = new HoubiResponse();
+        HoubiResponse houbiResponse;
         ResponseEntity<HoubiResponse> response = restTemplate.getForEntity(houbiUrl, HoubiResponse.class);
-        if (response.getStatusCode().is2xxSuccessful() && response.getBody().getStatus().equals("ok")
-                && response.getBody() != null){
+        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null
+                && response.getBody().getStatus().equals("ok")){
             houbiResponse = response.getBody();
+            List<HoubiPrice> prices = houbiResponse.getData();
+            return prices.stream()
+                    .map(p -> new CryptoPrice(
+                            p.getSymbol(),
+                            new BigDecimal(p.getBid()),
+                            new BigDecimal(p.getAsk())
+                    ))
+                    .toList();
         }
-        List<HoubiPrice> prices = houbiResponse.getData();
-        return prices.stream()
-                .map(p -> new CryptoPrice(
-                        p.getSymbol(),
-                        new BigDecimal(p.getBid()),
-                        new BigDecimal(p.getAsk())
-                ))
-                .toList();
+        return Collections.emptyList();
     }
 }
