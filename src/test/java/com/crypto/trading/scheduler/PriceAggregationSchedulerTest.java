@@ -11,8 +11,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
@@ -22,9 +24,10 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(org.mockito.junit.jupiter.MockitoExtension.class)
+@ExtendWith(MockitoExtension.class)
 public class PriceAggregationSchedulerTest {
 
+    public static final String BTCUSDT = "BTCUSDT";
     @Mock
     private RestTemplate restTemplate;
 
@@ -37,10 +40,9 @@ public class PriceAggregationSchedulerTest {
     @BeforeEach
     void setup() {
         scheduler = new PriceAggregationScheduler(restTemplate, aggregatedPriceRepository);
-        // inject URLs manually since @Value not available
-        org.springframework.test.util.ReflectionTestUtils.setField(
+        ReflectionTestUtils.setField(
                 scheduler, "binanceUrl", "http://testbinance.com");
-        org.springframework.test.util.ReflectionTestUtils.setField(
+        ReflectionTestUtils.setField(
                 scheduler, "houbiUrl", "http://testhoubi.com");
     }
 
@@ -48,7 +50,7 @@ public class PriceAggregationSchedulerTest {
     void testAggregationForBTCBidAndAskPrice() {
         // --- Mock Binance Response ---
         BinanceResponse binance = new BinanceResponse();
-        binance.setSymbol("BTCUSDT");
+        binance.setSymbol(BTCUSDT);
         binance.setBidPrice("72000");
         binance.setAskPrice("72165");
 
@@ -60,7 +62,7 @@ public class PriceAggregationSchedulerTest {
 
         // --- Mock Houbi Response ---
         HoubiPrice houbiPrice = new HoubiPrice();
-        houbiPrice.setSymbol("BTCUSDT");
+        houbiPrice.setSymbol(BTCUSDT);
         houbiPrice.setBid("71000");
         houbiPrice.setAsk("72379");
 

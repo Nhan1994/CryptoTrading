@@ -101,10 +101,10 @@ public class TradeService {
                                                             Integer size){
         User user = userService.getUserByUserName(userName);
 
-        // Default behavior: latest 100
+        // Get default 50 items
         if (page == null || size == null) {
             Pageable defaultPageable =
-                    PageRequest.of(0, 100, Sort.by(Sort.Direction.DESC, "createdAt"));
+                    PageRequest.of(0, 50, Sort.by(Sort.Direction.DESC, "createdAt"));
 
             return tradeTransactionRepository
                     .findByUser(user, defaultPageable)

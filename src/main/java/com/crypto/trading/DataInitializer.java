@@ -21,8 +21,7 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-
-        if (userRepository.count() > 0) {
+        if (userRepository.findByUserName("trader1").isPresent()) {
             return;
         }
 
@@ -41,6 +40,6 @@ public class DataInitializer implements CommandLineRunner {
                         .build()
         );
 
-        log.info("Initialize data for user {} with balance {} USDT", "trade1", 50000.0000000);
+        log.info("Initialize data for user {} with balance {} USDT", user.getUserName(), 50000.0000000);
     }
 }
