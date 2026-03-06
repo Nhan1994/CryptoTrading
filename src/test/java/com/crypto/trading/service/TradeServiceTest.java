@@ -53,7 +53,6 @@ public class TradeServiceTest {
 
     @Test
     void testExecuteBuyTradeSuccessfully() {
-
         TradeRequest request = new TradeRequest();
         request.setUsername("testuser");
         request.setSymbol(BTCUSDT);
@@ -87,7 +86,6 @@ public class TradeServiceTest {
 
     @Test
     void testExecuteSellTradeSuccessfully() {
-
         TradeRequest request = new TradeRequest();
         request.setUsername("testuser");
         request.setSymbol(BTCUSDT);
@@ -118,7 +116,6 @@ public class TradeServiceTest {
 
     @Test
     void testThrowExceptionForInvalidSymbol() {
-
         TradeRequest request = new TradeRequest();
         request.setUsername("testuser");
         request.setSymbol("DOGEUSDT");
@@ -133,7 +130,6 @@ public class TradeServiceTest {
 
     @Test
     void testThrowExceptionForInvalidQuantity() {
-
         TradeRequest request = new TradeRequest();
         request.setUsername("testuser");
         request.setSymbol(BTCUSDT);
@@ -148,7 +144,6 @@ public class TradeServiceTest {
 
     @Test
     void testThrowExceptionForInvalidTradeAction() {
-
         TradeRequest request = new TradeRequest();
         request.setUsername("testuser");
         request.setSymbol(BTCUSDT);

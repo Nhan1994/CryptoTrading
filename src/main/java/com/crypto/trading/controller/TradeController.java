@@ -18,13 +18,15 @@ public class TradeController {
 
     private final TradeService tradeService;
 
+    //3. API which allows users to trade based on the latest best aggregated price
     @PostMapping("")
     public ResponseEntity<TradeResponse> tradeCrypto(@RequestBody TradeRequest request){
         TradeResponse response = tradeService.tradeCrypto(request);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/transaction-histories")
+    //5. API to retrieve the user trading history
+    @GetMapping("/transaction-history")
     public ResponseEntity<List<TradingHistory>> getTradingHistory(
             @RequestParam String userName,
             @RequestParam(required = false) LocalDateTime startTime,

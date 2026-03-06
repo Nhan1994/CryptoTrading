@@ -20,7 +20,7 @@ public class UserService {
     public User getUserByUserName(String userName){
         return userRepository.findByUserName(userName)
                 .orElseThrow(() -> {
-                    log.warn("User not found: {}", userName);
+                    log.error("User not found: {}", userName);
                     return new TradingBusinessException("User not found: " + userName, HttpStatus.BAD_REQUEST);
                 });
     }

@@ -1,6 +1,6 @@
 package com.crypto.trading.dto;
 
-public enum DigitalCurrency {
+public enum CryptoCurrency {
 
     BTC("BTC"),
     ETH("ETH"),
@@ -8,7 +8,7 @@ public enum DigitalCurrency {
 
     private final String value;
 
-    DigitalCurrency(String value){
+    CryptoCurrency(String value){
         this.value = value;
     }
 

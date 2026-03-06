@@ -33,6 +33,8 @@ public class PriceAggregationScheduler {
     private final RestTemplate restTemplate;
     private final AggregatedPriceRepository aggregatedPriceRepository;
 
+    // 1. 10 seconds interval scheduler to retrieve the pricing from the source
+    // and store the best pricing into the database.
     @Scheduled(fixedRate = 10000)
     public void fetchAggregatedPrice(){
         try {

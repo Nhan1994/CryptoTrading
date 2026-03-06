@@ -8,6 +8,7 @@ import com.crypto.trading.repository.TradeTransactionRepository;
 import com.crypto.trading.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +25,7 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class TradeService {
 
     private final TradeTransactionRepository tradeTransactionRepository;
@@ -61,6 +63,7 @@ public class TradeService {
                     totalPrice
             );
         } else {
+            log.error("Invalid trading action");
             throw new TradingBusinessException("Invalid trading action", HttpStatus.BAD_REQUEST);
         }
 
@@ -87,9 +90,11 @@ public class TradeService {
 
     private void validateRequest(TradeRequest tradeRequest){
         if (!tradeRequest.getSymbol().equals(TradingPair.BTCUSDT.name()) && !tradeRequest.getSymbol().equals(TradingPair.ETHUSDT.name())){
+            log.error("Pair crypto is invalid");
             throw new TradingBusinessException("Pair crypto is invalid", HttpStatus.BAD_REQUEST);
         }
         if (tradeRequest.getQuantity().compareTo(new BigDecimal(0)) <= 0){
+            log.error("Quantity have to be greater than 0");
             throw new TradingBusinessException("Quantity have to be greater than 0", HttpStatus.BAD_REQUEST);
         }
     }

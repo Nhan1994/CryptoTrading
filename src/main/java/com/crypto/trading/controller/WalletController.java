@@ -18,6 +18,7 @@ public class WalletController {
 
     private final WalletService walletService;
 
+    //4. API to retrieve the user’s crypto currencies wallet balance
     @GetMapping("")
     public ResponseEntity<List<WalletResponse>> getUserWallet(@RequestParam("userName") String userName,
                                                               @RequestParam(value = "currency", required = false) String currency){
